@@ -8,28 +8,18 @@ describe('format', function () {
   beforeEach(function () {
     this._date = new Date(1986, 3 /* Apr */, 4, 10, 32, 0, 900)
 
-    this._timezone = {
-      '-840': '+14:00', '-810': '+13:30', '-780': '+13:00', '-750': '+12:30',
-      '-720': '+12:00', '-690': '+11:30', '-660': '+11:00', '-630': '+10:30',
-      '-600': '+10:00', '-570': '+09:30', '-540': '+09:00', '-510': '+08:30',
-      '-480': '+08:00', '-450': '+07:30', '-420': '+07:00', '-390': '+06:30',
-      '-360': '+06:00', '-330': '+05:30', '-300': '+05:00', '-270': '+04:30',
-      '-240': '+04:00', '-210': '+03:30', '-180': '+03:00', '-150': '+02:30',
-      '-120': '+02:00', '-90': '+01:30', '-60': '+01:00', '-30': '+00:30',
-      '0': '+00:00', '30': '-00:30', '60': '-01:00', '90': '-01:30', '120': '-02:00',
-      '150': '-02:30', '180': '-03:00', '210': '-03:30', '240': '-04:00',
-      '270': '-04:30', '300': '-05:00', '330': '-05:30', '360': '-06:00',
-      '390': '-06:30', '420': '-07:00', '450': '-07:30', '480': '-08:00',
-      '510': '-08:30', '540': '-09:00', '570': '-09:30', '600': '-10:00',
-      '630': '-10:30', '660': '-11:00', '690': '-11:30', '720': '-12:00',
-      '750': '-12:30', '780': '-13:00', '810': '-13:30', '840': '-14:00',
-      '-825': '+13:45', '-765': '+12:45', '-525': '+08:45', '-345': '+05:45',
-      '345': '-05:45', '525': '-08:45', '765': '-12:45'
-    }[this._date.getTimezoneOffset().toString()]
-    this._timezoneShort = this._timezone.replace(':', '')
-
     this._timestamp = this._date.getTime().toString()
     this._secondsTimestamp = Math.floor(this._date.getTime() / 1000).toString()
+
+    this._originalGetTimezoneOffset = Date.prototype.getTimezoneOffset
+    // Mock timezone to UTC+08:00 (Bali, Indonesia)
+    Date.prototype.getTimezoneOffset = function () {
+      return -480
+    }
+  })
+
+  afterEach(function () {
+    Date.prototype.getTimezoneOffset = this._originalGetTimezoneOffset
   })
 
   it('accepts a string', function () {
@@ -42,8 +32,8 @@ describe('format', function () {
     assert(format(date, 'YYYY-MM-DD') === '2014-04-04')
   })
 
-  it('uses the default ISO string format if format is not specified', function () {
-    assert(format(this._date) === '1986-04-04T10:32:00.900' + this._timezone)
+  it('uses the default ISO string format hen format is not specified', function () {
+    assert(format(this._date) === '1986-04-04T10:32:00.900+08:00')
   })
 
   it('escapes characters between the square brackets', function () {
@@ -287,7 +277,7 @@ describe('format', function () {
 
     it('all variants', function () {
       var result = format(this._date, 'Z ZZ')
-      assert(result === this._timezone + ' ' + this._timezoneShort)
+      assert(result === '+08:00 +0800')
     })
   })
 
